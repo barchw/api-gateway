@@ -212,7 +212,7 @@ lister-gen: ## Download lister-gen
 
 .PHONY: fmt
 fmt: ## Run go fmt against code.
-	go fmt ./...
+	gofmt -s -w .
 
 .PHONY: lint
 lint: ## Run golangci-lint against code.

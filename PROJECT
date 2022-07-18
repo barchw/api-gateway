@@ -1,7 +1,13 @@
-version: "2"
 domain: kyma-project.io
 repo: github.com/kyma-incubator/api-gateway
 resources:
 - group: gateway
-  version: v1alpha1
   kind: ApiRule
+  version: v1alpha1
+- group: gateway
+  kind: APIRule
+  version: v1alpha2
+- group: gateway
+  kind: APIRule
+  version: v1alpha1
+version: "2"

@@ -62,8 +62,8 @@ var _ = Describe("Validate function", func() {
 		sampleBlocklistedService := "kubernetes"
 		validHost := sampleBlocklistedService + "." + allowlistedDomain
 		testBlockList := map[string][]string{
-			"default": []string{sampleBlocklistedService, "kube-dns"},
-			"example": []string{"service"}}
+			"default": {sampleBlocklistedService, "kube-dns"},
+			"example": {"service"}}
 		input := &gatewayv1alpha1.APIRule{
 			ObjectMeta: v1.ObjectMeta{
 				Namespace: "default",
@@ -97,8 +97,8 @@ var _ = Describe("Validate function", func() {
 		//given
 		invalidHost := sampleServiceName + "." + notAllowlistedDomain
 		testBlockList := map[string][]string{
-			"default": []string{"kubernetes", "kube-dns"},
-			"example": []string{"service"}}
+			"default": {"kubernetes", "kube-dns"},
+			"example": {"service"}}
 		input := &gatewayv1alpha1.APIRule{
 			Spec: gatewayv1alpha1.APIRuleSpec{
 				Service: getService(sampleServiceName, uint32(8080), invalidHost),
@@ -130,8 +130,8 @@ var _ = Describe("Validate function", func() {
 		blocklistedSubdomain := "api"
 		blockedhost := blocklistedSubdomain + "." + testDefaultDomain
 		testBlockList := map[string][]string{
-			"default": []string{"kubernetes", "kube-dns"},
-			"example": []string{"service"}}
+			"default": {"kubernetes", "kube-dns"},
+			"example": {"service"}}
 		testHostBlockList := []string{blockedhost}
 		input := &gatewayv1alpha1.APIRule{
 			Spec: gatewayv1alpha1.APIRuleSpec{
@@ -168,8 +168,8 @@ var _ = Describe("Validate function", func() {
 		blockedhost := blocklistedSubdomain + "." + testDefaultDomain
 		customHost := blocklistedSubdomain + "." + customDomainName
 		testBlockList := map[string][]string{
-			"default": []string{"kubernetes", "kube-dns"},
-			"example": []string{"service"}}
+			"default": {"kubernetes", "kube-dns"},
+			"example": {"service"}}
 		testHostBlockList := []string{blockedhost}
 		input := &gatewayv1alpha1.APIRule{
 			Spec: gatewayv1alpha1.APIRuleSpec{
@@ -201,8 +201,8 @@ var _ = Describe("Validate function", func() {
 		//given
 		validHost := sampleServiceName + "." + notAllowlistedDomain
 		testBlockList := map[string][]string{
-			"default": []string{"kubernetes", "kube-dns"},
-			"example": []string{"service"}}
+			"default": {"kubernetes", "kube-dns"},
+			"example": {"service"}}
 		input := &gatewayv1alpha1.APIRule{
 			Spec: gatewayv1alpha1.APIRuleSpec{
 				Service: getService(sampleServiceName, uint32(8080), validHost),
@@ -231,8 +231,8 @@ var _ = Describe("Validate function", func() {
 		//given
 		invalidHost := sampleServiceName + "." + allowlistedDomain + "." + notAllowlistedDomain
 		testBlockList := map[string][]string{
-			"default": []string{"kubernetes", "kube-dns"},
-			"example": []string{"service"}}
+			"default": {"kubernetes", "kube-dns"},
+			"example": {"service"}}
 		input := &gatewayv1alpha1.APIRule{
 			Spec: gatewayv1alpha1.APIRuleSpec{
 				Service: getService(sampleServiceName, uint32(8080), invalidHost),
@@ -263,8 +263,8 @@ var _ = Describe("Validate function", func() {
 		//given
 		hostWithoutDomain := sampleServiceName
 		testBlockList := map[string][]string{
-			"default": []string{"kubernetes", "kube-dns"},
-			"example": []string{"service"}}
+			"default": {"kubernetes", "kube-dns"},
+			"example": {"service"}}
 		input := &gatewayv1alpha1.APIRule{
 			Spec: gatewayv1alpha1.APIRuleSpec{
 				Service: getService(sampleServiceName, uint32(8080), hostWithoutDomain),
@@ -295,8 +295,8 @@ var _ = Describe("Validate function", func() {
 		//given
 		hostWithoutDomain := sampleServiceName
 		testBlockList := map[string][]string{
-			"default": []string{"kubernetes", "kube-dns"},
-			"example": []string{"service"}}
+			"default": {"kubernetes", "kube-dns"},
+			"example": {"service"}}
 		input := &gatewayv1alpha1.APIRule{
 			Spec: gatewayv1alpha1.APIRuleSpec{
 				Service: getService(sampleServiceName, uint32(8080), hostWithoutDomain),
@@ -326,8 +326,8 @@ var _ = Describe("Validate function", func() {
 		//given
 		invalidHost := sampleServiceName + "." + allowlistedDomain + "." + allowlistedDomain
 		testBlockList := map[string][]string{
-			"default": []string{"kubernetes", "kube-dns"},
-			"example": []string{"service"}}
+			"default": {"kubernetes", "kube-dns"},
+			"example": {"service"}}
 		input := &gatewayv1alpha1.APIRule{
 			Spec: gatewayv1alpha1.APIRuleSpec{
 				Service: getService(sampleServiceName, uint32(8080), invalidHost),

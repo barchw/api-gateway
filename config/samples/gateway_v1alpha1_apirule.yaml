@@ -1,0 +1,6 @@
+apiVersion: gateway.kyma-project.io/v1alpha1
+kind: APIRule
+metadata:
+  name: apirule-sample
+spec:
+  # TODO(user): Add fields here

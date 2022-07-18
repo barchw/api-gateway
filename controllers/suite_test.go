@@ -2,20 +2,22 @@ package controllers_test
 
 import (
 	"context"
-	gatewayv1alpha1 "github.com/kyma-incubator/api-gateway/api/v1alpha1"
-	"github.com/kyma-incubator/api-gateway/controllers"
-	"github.com/kyma-incubator/api-gateway/internal/processing"
+	"path/filepath"
+	"testing"
+	"time"
+
 	rulev1alpha1 "github.com/ory/oathkeeper-maester/api/v1alpha1"
 	"istio.io/api/networking/v1beta1"
 	networkingv1beta1 "istio.io/client-go/pkg/apis/networking/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
-	"testing"
-	"time"
+
+	gatewayv1alpha1 "github.com/kyma-incubator/api-gateway/api/v1alpha1"
+	"github.com/kyma-incubator/api-gateway/controllers"
+	"github.com/kyma-incubator/api-gateway/internal/processing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

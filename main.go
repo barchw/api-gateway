@@ -21,15 +21,14 @@ import (
 	"os"
 	"strings"
 
-	gatewayv1alpha1 "github.com/kyma-incubator/api-gateway/api/v1alpha1"
 	"istio.io/api/networking/v1beta1"
+
+	gatewayv1alpha1 "github.com/kyma-incubator/api-gateway/api/v1alpha1"
 
 	"github.com/pkg/errors"
 
 	"github.com/kyma-incubator/api-gateway/internal/processing"
 
-	"github.com/kyma-incubator/api-gateway/controllers"
-	"github.com/kyma-incubator/api-gateway/internal/validation"
 	rulev1alpha1 "github.com/ory/oathkeeper-maester/api/v1alpha1"
 	networkingv1beta1 "istio.io/client-go/pkg/apis/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -38,6 +37,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	"github.com/kyma-incubator/api-gateway/controllers"
+	"github.com/kyma-incubator/api-gateway/internal/validation"
 )
 
 var (
@@ -143,6 +145,10 @@ func main() {
 		GeneratedObjectsLabels: additionalLabels,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Api")
+		os.Exit(1)
+	}
+	if err = (&gatewayv1alpha1.APIRule{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "APIRule")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
