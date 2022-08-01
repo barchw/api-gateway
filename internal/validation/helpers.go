@@ -4,10 +4,10 @@ import (
 	"net/url"
 	"regexp"
 
-	gatewayv1alpha1 "github.com/kyma-incubator/api-gateway/api/v1alpha1"
+	gatewayv1beta1 "github.com/kyma-incubator/api-gateway/api/v1beta1"
 )
 
-func hasDuplicates(rules []gatewayv1alpha1.Rule) bool {
+func hasDuplicates(rules []gatewayv1beta1.Rule) bool {
 	encountered := map[string]bool{}
 	// Create a map of all unique elements.
 	for v := range rules {
@@ -21,10 +21,7 @@ func isValidURL(toTest string) bool {
 		return false
 	}
 	_, err := url.ParseRequestURI(toTest)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 //ValidateDomainName ?

@@ -41,6 +41,8 @@ ifndef CORS_ALLOW_HEADERS
 override CORS_ALLOW_HEADERS = Authorization,Content-Type,*
 endif
 
+# Image URL to use all building/pushing image targets
+IMG ?= controller:latest
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.24.1
 
@@ -90,8 +92,12 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 
 # Generate code
 .PHONY: generate
-generate: controller-gen
-	$(CONTROLLER_GEN) object:headerFile=./hack/boilerplate.go.txt paths=./api/...
+generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+
+.PHONY: fmt
+fmt: ## Run go fmt against code.
+	go fmt ./...
 
 .PHONY: vet
 vet: ## Run go vet against code.
@@ -109,34 +115,19 @@ build: generate fmt vet ## Build manager binary.
 	go build -o bin/manager main.go
 
 .PHONY: run
-run: build
-	go run . --oathkeeper-svc-address=${OATHKEEPER_SVC_ADDRESS} --oathkeeper-svc-port=${OATHKEEPER_SVC_PORT} --jwks-uri=${JWKS_URI} --service-blocklist=${SERVICE_BLOCKLIST} --domain-allowlist=${DOMAIN_ALLOWLIST}
+run: manifests generate fmt vet ## Run a controller from your host.
+	go run ./main.go
 
 .PHONY: docker-build
-docker-build: pull-licenses test ## Build docker image with the manager.
-	docker build -t $(APP_NAME):latest .
+docker-build: test ## Build docker image with the manager.
+	docker build -t ${IMG} .
 
 .PHONY: docker-push
-docker-push:
-	docker tag $(APP_NAME) $(IMG):$(TAG)
-	docker push $(IMG):$(TAG)
-ifeq ($(JOB_TYPE), postsubmit)
-	@echo "Sign image with Cosign"
-	cosign version
-	cosign sign -key ${KMS_KEY_URL} $(IMG):$(TAG)
-else
-	@echo "Image signing skipped"
-endif
-
-.PHONY: pull-licenses
-pull-licenses:
-ifdef LICENSE_PULLER_PATH
-	bash $(LICENSE_PULLER_PATH)
-else
-	mkdir -p licenses
-endif
+docker-push: ## Push docker image with the manager.
+	docker push ${IMG}
 
 ##@ Deployment
+
 ifndef ignore-not-found
   ignore-not-found = false
 endif
@@ -154,13 +145,15 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 
 # Deploy the controller using "api-gateway-controller:latest" Docker image to the Kubernetes cluster configured in ~/.kube/config
 .PHONY: deploy
-deploy-dev: manifests patch-gen
-	kustomize build config/development | kubectl apply -f -
+deploy: generate manifests patch-gen kustomize install ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 .PHONY: undeploy
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
+##@ Build Dependencies
 
 ## Location to install dependencies to
 LOCALBIN ?= $(shell pwd)/bin

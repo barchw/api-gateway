@@ -4,16 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 
-	gatewayv1alpha1 "github.com/kyma-incubator/api-gateway/api/v1alpha1"
+	gatewayv1beta1 "github.com/kyma-incubator/api-gateway/api/v1beta1"
 )
 
 //jwtAccStrValidator is an accessStrategy validator for jwt ORY authenticator
 type jwtAccStrValidator struct{}
 
-func (j *jwtAccStrValidator) Validate(attributePath string, handler *gatewayv1alpha1.Handler) []Failure {
+func (j *jwtAccStrValidator) Validate(attributePath string, handler *gatewayv1beta1.Handler) []Failure {
 	var problems []Failure
 
-	var template gatewayv1alpha1.JWTAccStrConfig
+	var template gatewayv1beta1.JWTAccStrConfig
 
 	if !configNotEmpty(handler.Config) {
 		problems = append(problems, Failure{AttributePath: attributePath + ".config", Message: "supplied config cannot be empty"})

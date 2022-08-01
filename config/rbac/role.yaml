@@ -1,4 +1,3 @@
-
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -11,42 +10,48 @@ rules:
   resources:
   - apirules
   verbs:
+  - create
+  - delete
   - get
   - list
-  - watch
-  - create
-  - update
   - patch
-  - delete
+  - update
+  - watch
+- apiGroups:
+  - gateway.kyma-project.io
+  resources:
+  - apirules/finalizers
+  verbs:
+  - update
 - apiGroups:
   - gateway.kyma-project.io
   resources:
   - apirules/status
   verbs:
   - get
-  - update
   - patch
+  - update
 - apiGroups:
   - networking.istio.io
   resources:
   - virtualservices
   verbs:
+  - create
+  - delete
   - get
   - list
-  - watch
-  - create
-  - update
   - patch
-  - delete
+  - update
+  - watch
 - apiGroups:
   - oathkeeper.ory.sh
   resources:
   - rules
   verbs:
+  - create
+  - delete
   - get
   - list
-  - watch
-  - create
-  - update
   - patch
-  - delete
+  - update
+  - watch

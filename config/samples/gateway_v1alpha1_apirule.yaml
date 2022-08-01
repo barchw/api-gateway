@@ -1,6 +1,20 @@
 apiVersion: gateway.kyma-project.io/v1alpha1
 kind: APIRule
 metadata:
-  name: apirule-sample
+  name: orders-service-v1alpha1
+  namespace: default
+  labels:
+    app: orders-service
+    example: orders-service
 spec:
-  # TODO(user): Add fields here
+  service:
+    host: testHost.com
+    name: orders-service
+    port: 80
+  gateway: kyma-system/kyma-gateway
+  rules:
+    - path: /.*
+      methods: ["GET","POST"]
+      accessStrategies:
+        - handler: noop
+      mutators: []
