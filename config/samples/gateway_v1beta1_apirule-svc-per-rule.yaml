@@ -7,7 +7,7 @@ metadata:
     app: orders-service
     example: orders-service
 spec:
-  host: testHost.com
+  host: perrule.testHost.com
   gateway: kyma-system/kyma-gateway
   rules:
     - path: /.*

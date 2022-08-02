@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -95,7 +96,8 @@ func (r *APIRuleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 		validationFailures := validator.Validate(api, vsList)
 		if len(validationFailures) > 0 {
-			r.Log.Info(fmt.Sprintf(`Validation failure {"controller": "Api", "request": "%s/%s"}`, api.Namespace, api.Name))
+			failuresJson, _ := json.Marshal(validationFailures)
+			r.Log.Info(fmt.Sprintf(`Validation failure {"controller": "Api", "request": "%s/%s", "failures": %s}`, api.Namespace, api.Name, string(failuresJson)))
 			return r.setStatus(ctx, api, generateValidationStatus(validationFailures), gatewayv1beta1.StatusSkipped)
 		}
 

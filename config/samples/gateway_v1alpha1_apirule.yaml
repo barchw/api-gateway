@@ -8,7 +8,7 @@ metadata:
     example: orders-service
 spec:
   service:
-    host: testHost.com
+    host: alpha.testHost.com
     name: orders-service
     port: 80
   gateway: kyma-system/kyma-gateway
@@ -16,5 +16,5 @@ spec:
     - path: /.*
       methods: ["GET","POST"]
       accessStrategies:
-        - handler: noop
+        - handler: allow
       mutators: []
