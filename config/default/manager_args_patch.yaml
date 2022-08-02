@@ -9,11 +9,11 @@ spec:
       containers:
       - name: manager
         args:
-          - --oathkeeper-svc-address=change-me
-          - --oathkeeper-svc-port=change-me
-          - --jwks-uri=change-me
+          - --oathkeeper-svc-address=ory-oathkeeper
+          - --oathkeeper-svc-port=4455
+          - --jwks-uri=https://example.com/.well-known/jwks.json
           - --service-blocklist=kubernetes.default,kube-dns.kube-system
-          - --domain-allowlist=change-me
+          - --domain-allowlist=testHost.com
           - --cors-allow-origins=regex:.*
           - --cors-allow-methods=GET,POST,PUT,DELETE
           - --cors-allow-headers=Authorization,Content-Type,*
