@@ -144,6 +144,10 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 	$(KUSTOMIZE) build config/crd | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
 # Deploy the controller using "api-gateway-controller:latest" Docker image to the Kubernetes cluster configured in ~/.kube/config
+.PHONY: deploy-dev
+deploy-dev: manifests patch-gen
+	$(KUSTOMIZE) build config/development | kubectl apply -f -
+
 .PHONY: deploy
 deploy: generate manifests patch-gen kustomize install ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}

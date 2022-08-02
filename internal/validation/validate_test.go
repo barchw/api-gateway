@@ -606,9 +606,9 @@ var _ = Describe("Validator for", func() {
 			//then
 			Expect(problems).To(HaveLen(2))
 			Expect(problems[0].AttributePath).To(Equal("some.attribute.config.trusted_issuers[0]"))
-			Expect(problems[0].Message).To(Equal("value is empty or not a valid url"))
+			Expect(problems[0].Message).To(ContainSubstring("value is empty or not a valid url"))
 			Expect(problems[1].AttributePath).To(Equal("some.attribute.config.jwks_urls[0]"))
-			Expect(problems[1].Message).To(Equal("value is empty or not a valid url"))
+			Expect(problems[1].Message).To(ContainSubstring("value is empty or not a valid url"))
 		})
 
 		It("Should fail for config with plain HTTP JWKSUrls and trustedIssuers", func() {
@@ -621,9 +621,9 @@ var _ = Describe("Validator for", func() {
 			//then
 			Expect(problems).To(HaveLen(2))
 			Expect(problems[0].AttributePath).To(Equal("some.attribute.config.trusted_issuers[0]"))
-			Expect(problems[0].Message).To(Equal("value is not a secured url"))
+			Expect(problems[0].Message).To(ContainSubstring("value is not a secured url"))
 			Expect(problems[1].AttributePath).To(Equal("some.attribute.config.jwks_urls[0]"))
-			Expect(problems[1].Message).To(Equal("value is not a secured url"))
+			Expect(problems[1].Message).To(ContainSubstring("value is not a secured url"))
 		})
 
 		It("Should succeed for config with file JWKSUrls and HTTPS trustedIssuers", func() {

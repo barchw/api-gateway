@@ -67,17 +67,7 @@ func (dst *APIRule) ConvertFrom(srcRaw conversion.Hub) error {
 	}
 
 	host := *src.Spec.Host
-	/*service := Service{}
-	service.Host = &host
-	if service.IsExternal != nil {
-		isExternal := *src.Spec.Service.IsExternal
-		service.IsExternal = &isExternal
-	}
-	port := *src.Spec.Service.Port
-	service.Port = &port
-	name := *src.Spec.Service.Name
-	service.Name = &name
-	dst.Spec.Service = &service*/
+
 	dst.Spec.Service.Host = &host
 
 	return nil

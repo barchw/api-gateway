@@ -59,7 +59,7 @@ type APIRuleReconciler struct {
 //+kubebuilder:rbac:groups=oathkeeper.ory.sh,resources=rules,verbs=get;list;watch;create;update;patch;delete
 
 func (r *APIRuleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("Api", req.NamespacedName)
+	//_ = r.Log.WithValues("Api", req.NamespacedName)
 
 	r.Log.Info("Starting reconcilation")
 

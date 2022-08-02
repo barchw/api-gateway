@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"errors"
 	"net/url"
 	"regexp"
 	"strings"
@@ -17,19 +18,25 @@ func hasDuplicates(rules []gatewayv1beta1.Rule) bool {
 	return len(encountered) != len(rules)
 }
 
-func isInvalidURL(toTest string) bool {
+func isInvalidURL(toTest string) (bool, error) {
 	if len(toTest) == 0 {
-		return true
+		return true, errors.New("value is empty")
 	}
 	_, err := url.ParseRequestURI(toTest)
-	return err == nil
+	if err != nil {
+		return true, err
+	}
+	return false, nil
 }
 
-func isUnsecuredURL(toTest string) bool {
+func isUnsecuredURL(toTest string) (bool, error) {
 	if len(toTest) == 0 {
-		return false
+		return true, errors.New("value is empty")
 	}
-	return strings.HasPrefix(toTest, "http://")
+	if strings.HasPrefix(toTest, "http://") {
+		return true, errors.New("value is unsecure")
+	}
+	return false, nil
 }
 
 //ValidateDomainName ?
