@@ -123,23 +123,23 @@ docker-build: pull-licenses test ## Build docker image with the manager.
  	docker build -t $(APP_NAME):latest .
 
 docker-push:
- 	docker tag $(APP_NAME) $(IMG):$(TAG)
- 	docker push $(IMG):$(TAG)
- ifeq ($(JOB_TYPE), postsubmit)
- 	@echo "Sign image with Cosign"
- 	cosign version
- 	cosign sign -key ${KMS_KEY_URL} $(IMG):$(TAG)
- else
- 	@echo "Image signing skipped"
- endif
+	docker tag $(APP_NAME) $(IMG):$(TAG)
+	docker push $(IMG):$(TAG)
+ifeq ($(JOB_TYPE), postsubmit)
+	@echo "Sign image with Cosign"
+	cosign version
+	cosign sign -key ${KMS_KEY_URL} $(IMG):$(TAG)
+else
+	@echo "Image signing skipped"
+endif
 
- .PHONY: pull-licenses
- pull-licenses:
- ifdef LICENSE_PULLER_PATH
- 	bash $(LICENSE_PULLER_PATH)
- else
+.PHONY: pull-licenses
+pull-licenses:
+ifdef LICENSE_PULLER_PATH
+	bash $(LICENSE_PULLER_PATH)
+else
  	mkdir -p licenses
- endif
+endif
 
 ##@ Deployment
 
