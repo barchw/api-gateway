@@ -27,10 +27,16 @@ func (f *Factory) generateVirtualService(api *gatewayv1beta1.APIRule) *networkin
 		httpRouteBuilder := builders.HTTPRoute()
 		host, port := f.oathkeeperSvc, f.oathkeeperSvcPort
 
-		//TODO: Refactor for service on path level https://github.com/istio/istio/issues/10464#issuecomment-447200102
 		if !isSecured(rule) {
-			host = fmt.Sprintf("%s.%s.svc.cluster.local", *api.Spec.Service.Name, api.ObjectMeta.Namespace)
-			port = *api.Spec.Service.Port
+			// Use rule level service if it exists
+			if rule.Service != nil {
+				host = fmt.Sprintf("%s.%s.svc.cluster.local", *rule.Service.Name, api.ObjectMeta.Namespace)
+				port = *rule.Service.Port
+			} else {
+				// Otherwise use service defined on APIRule spec level
+				host = fmt.Sprintf("%s.%s.svc.cluster.local", *api.Spec.Service.Name, api.ObjectMeta.Namespace)
+				port = *api.Spec.Service.Port
+			}
 		}
 
 		httpRouteBuilder.Route(builders.RouteDestination().Host(host).Port(port))

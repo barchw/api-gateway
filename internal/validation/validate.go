@@ -57,7 +57,7 @@ func (v *APIRule) Validate(api *gatewayv1beta1.APIRule, vsList networkingv1beta1
 	//Validate Gateway
 	res = append(res, v.validateGateway(".spec.gateway", api.Spec.Gateway)...)
 	//Validate Rules
-	res = append(res, v.validateRules(".spec.rules", api.Spec.Rules)...)
+	res = append(res, v.validateRules(".spec.rules", api.Spec.Service == nil, api.Spec.Rules)...)
 
 	return res
 }
@@ -143,7 +143,9 @@ func (v *APIRule) validateGateway(attributePath string, gateway *string) []Failu
 	return nil
 }
 
-func (v *APIRule) validateRules(attributePath string, rules []gatewayv1beta1.Rule) []Failure {
+// Validates whether all rules are defined correctly
+// Checks whether all rules have service defined for them if checkForService is true
+func (v *APIRule) validateRules(attributePath string, checkForService bool, rules []gatewayv1beta1.Rule) []Failure {
 	var problems []Failure
 
 	if len(rules) == 0 {
@@ -152,13 +154,16 @@ func (v *APIRule) validateRules(attributePath string, rules []gatewayv1beta1.Rul
 	}
 
 	if hasDuplicates(rules) {
-		problems = append(problems, Failure{AttributePath: attributePath, Message: "multiple rules defined for the same path"})
+		problems = append(problems, Failure{AttributePath: attributePath, Message: "Multiple rules defined for the same path"})
 	}
 
 	for i, r := range rules {
-		attrPath := fmt.Sprintf("%s[%d]", attributePath, i)
-		problems = append(problems, v.validateMethods(attrPath+".methods", r.Methods)...)
-		problems = append(problems, v.validateAccessStrategies(attrPath+".accessStrategies", r.AccessStrategies)...)
+		attributePathWithRuleIndex := fmt.Sprintf("%s[%d]", attributePath, i)
+		problems = append(problems, v.validateMethods(attributePathWithRuleIndex+".methods", r.Methods)...)
+		problems = append(problems, v.validateAccessStrategies(attributePathWithRuleIndex+".accessStrategies", r.AccessStrategies)...)
+		if checkForService && r.Service == nil {
+			problems = append(problems, Failure{AttributePath: attributePathWithRuleIndex + ".svc", Message: "No service defined with no main service on spec level"})
+		}
 	}
 
 	return problems
