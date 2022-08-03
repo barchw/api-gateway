@@ -5,26 +5,46 @@ CRD_OPTIONS ?= "crd:trivialVersions=true,crdVersions=v1"
 
 # Example ory-oathkeeper
 ifndef OATHKEEPER_SVC_ADDRESS
+override OATHKEEPER_SVC_ADDRESS = change-me
+endif
+
+ifdef DEV
 override OATHKEEPER_SVC_ADDRESS = ory-oathkeeper
 endif
 
 # Example 4455
 ifndef OATHKEEPER_SVC_PORT
+override OATHKEEPER_SVC_PORT = change-me
+endif
+
+ifdef DEV
 override OATHKEEPER_SVC_PORT = 4455
 endif
 
 # https://example.com/.well-known/jwks.json
 ifndef JWKS_URI
+override JWKS_URI = change-me
+endif
+
+ifdef DEV
 override JWKS_URI = https://example.com/.well-known/jwks.json
 endif
 
 # kubernetes.default service.namespace
 ifndef SERVICE_BLOCKLIST
+override SERVICE_BLOCKLIST = change-me
+endif
+
+ifdef DEV
 override SERVICE_BLOCKLIST = kubernetes.default,kube-dns.kube-system
 endif
 
 # kyma.local foo.bar bar
 ifndef DOMAIN_ALLOWLIST
+override DOMAIN_ALLOWLIST = change-me
+endif
+
+ifdef DEV
 override DOMAIN_ALLOWLIST = testHost.com
 endif
 
