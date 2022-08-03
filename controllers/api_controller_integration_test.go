@@ -163,7 +163,7 @@ var _ = Describe("APIRule Controller", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(created.Status.APIRuleStatus.Code).To(Equal(gatewayv1beta1.StatusError))
 			Expect(created.Status.APIRuleStatus.Description).To(ContainSubstring("Multiple validation errors:"))
-			Expect(created.Status.APIRuleStatus.Description).To(ContainSubstring("Attribute \".spec.rules\": multiple rules defined for the same path"))
+			Expect(created.Status.APIRuleStatus.Description).To(ContainSubstring("Attribute \".spec.rules\": Multiple rules defined for the same path"))
 			Expect(created.Status.APIRuleStatus.Description).To(ContainSubstring("Attribute \".spec.rules[0].accessStrategies[0].config\": strategy: noop does not support configuration"))
 			Expect(created.Status.APIRuleStatus.Description).To(ContainSubstring("Attribute \".spec.rules[1].accessStrategies[0].config\": strategy: noop does not support configuration"))
 			Expect(created.Status.APIRuleStatus.Description).To(ContainSubstring("1 more error(s)..."))
@@ -219,7 +219,9 @@ var _ = Describe("APIRule Controller", func() {
 								Route(builders.RouteDestination().Host(testOathkeeperSvcURL).Port(testOathkeeperPort)).
 								Headers(builders.Headers().SetHostHeader(testServiceHost)).
 								CorsPolicy(corsPolicyBuilder))
-						Expect(vs.Spec).To(Equal(*expectedSpec.Get()))
+
+						gotSpec := *expectedSpec.Get()
+						Expect(*vs.Spec.DeepCopy()).To(Equal(*gotSpec.DeepCopy()))
 
 						//Verify Rule
 						expectedRuleMatchURL := fmt.Sprintf("<http|https>://%s<%s>", testServiceHost, testPath)
@@ -315,8 +317,8 @@ var _ = Describe("APIRule Controller", func() {
 								Route(builders.RouteDestination().Host(testOathkeeperSvcURL).Port(testOathkeeperPort)).
 								Headers(builders.Headers().SetHostHeader(testServiceHost)).
 								CorsPolicy(corsPolicyBuilder))
-
-						Expect(vs.Spec).To(Equal(*expectedSpec.Get()))
+						gotSpec := *expectedSpec.Get()
+						Expect(*vs.Spec.DeepCopy()).To(Equal(*gotSpec.DeepCopy()))
 
 						//Verify Rule1
 						expectedRuleMatchURL := fmt.Sprintf("<http|https>://%s<%s>", testServiceHost, "/img")
@@ -477,7 +479,8 @@ var _ = Describe("APIRule Controller", func() {
 								Headers(builders.Headers().SetHostHeader(testServiceHost)).
 								CorsPolicy(corsPolicyBuilder))
 
-						Expect(vs.Spec).To(Equal(*expectedSpec.Get()))
+						gotSpec := *expectedSpec.Get()
+						Expect(*vs.Spec.DeepCopy()).To(Equal(*gotSpec.DeepCopy()))
 
 						//Verify Rules
 						for _, tc := range []struct {
@@ -600,7 +603,7 @@ func testInstance(name, namespace, serviceName, serviceHost string, servicePort 
 			Namespace: namespace,
 		},
 		Spec: gatewayv1beta1.APIRuleSpec{
-			Host: &serviceHost,
+			Host:    &serviceHost,
 			Gateway: &gateway,
 			Service: &gatewayv1beta1.Service{
 				Name: &serviceName,
