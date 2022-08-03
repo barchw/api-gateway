@@ -99,36 +99,36 @@ spec:
 
 This table lists all the possible parameters of a given resource together with their descriptions:
 
-| Field                                        | Mandatory | Description                                                                                                                                               |
-| :------------------------------------------- | :-------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **metadata.name**                            |  **YES**  | Specifies the name of the exposed API                                                                                                                     |
-| **spec.gateway**                             |  **YES**  | Specifies Istio Gateway.                                                                                                                                  |
-| **spec.service.name**, **spec.service.port** |  **YES**  | Specifies the name and the communication port of the exposed service.                                                                                     |
-| **spec.service.host**                        |  **YES**  | Specifies the service's communication address for inbound external traffic. If only the leftmost label is provided, the default domain name will be used. |
-| **spec.rules**                               |  **YES**  | Specifies array of rules.                                                                                                                                 |
-| **spec.rules.path**                          |  **YES**  | Specifies the path of the exposed service.                                                                                                                |
-| **spec.rules.methods**                       |  **YES**  | Specifies the list of HTTP request methods available for **spec.rules.path**.                                                                             |
-| **spec.rules.mutators**                      |  **NO**   | Specifies array of [Oathkeeper mutators](https://www.ory.sh/docs/oathkeeper/pipeline/mutator).                                                            |
-| **spec.rules.accessStrategies**              |  **YES**  | Specifies array of [Oathkeeper authenticators](https://www.ory.sh/docs/oathkeeper/pipeline/authn).                                                        |
+| Field   |      Mandatory      |  Description |
+|:---|:---:|:---|
+| **metadata.name** |    **YES**   | Specifies the name of the exposed API |
+| **spec.gateway** | **YES** | Specifies Istio Gateway. |
+| **spec.service.name**, **spec.service.port** | **YES** | Specifies the name and the communication port of the exposed service. |
+| **spec.service.host** | **YES** | Specifies the service's communication address for inbound external traffic. If only the leftmost label is provided, the default domain name will be used. |
+| **spec.rules** | **YES** | Specifies array of rules. |
+| **spec.rules.path** | **YES** | Specifies the path of the exposed service. |
+| **spec.rules.methods** | **YES** | Specifies the list of HTTP request methods available for **spec.rules.path**. |
+| **spec.rules.mutators** | **NO** | Specifies array of [Oathkeeper mutators](https://www.ory.sh/docs/oathkeeper/pipeline/mutator). |
+| **spec.rules.accessStrategies** | **YES** | Specifies array of [Oathkeeper authenticators](https://www.ory.sh/docs/oathkeeper/pipeline/authn). |
 
 ## Additional information
 
 When you fetch an existing APIRule CR, the system adds the **status** section which describes the status of the Virtual Service and the Rule created for this CR. This table lists the fields of the **status** section.
 
-| Field                                | Description                                 |
-| :----------------------------------- | :------------------------------------------ |
-| **status.apiRuleStatus**             | Status code describing the APIRule CR.      |
+| Field   |  Description |
+|:---|:---|
+| **status.apiRuleStatus** | Status code describing the APIRule CR. |
 | **status.virtualServiceStatus.code** | Status code describing the Virtual Service. |
-| **status.virtualService.desc**       | Current state of the Virtual Service.       |
-| **status.accessRuleStatus.code**     | Status code describing the Oathkeeper Rule. |
-| **status.accessRuleStatus.desc**     | Current state of the Oathkeeper Rule.       |
+| **status.virtualService.desc** | Current state of the Virtual Service. |
+| **status.accessRuleStatus.code** | Status code describing the Oathkeeper Rule. |
+| **status.accessRuleStatus.desc** | Current state of the Oathkeeper Rule. |
 
 ### Status codes
 
 These are the status codes used to describe the Virtual Services and Rules:
 
-|    Code     | Description                  |
-| :---------: | :--------------------------- |
-|   **OK**    | Resource created.            |
+| Code   |  Description |
+|:---:|:---|
+| **OK** | Resource created. |
 | **SKIPPED** | Skipped creating a resource. |
-|  **ERROR**  | Resource not created.        |
+| **ERROR** | Resource not created. |
