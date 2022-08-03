@@ -1,0 +1,8 @@
+approvers:
+  - strekm
+reviewers:
+  - strekm
+
+labels:
+- area/service-mesh
+- area/security
