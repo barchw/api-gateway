@@ -115,16 +115,31 @@ build: generate fmt vet ## Build manager binary.
 	go build -o bin/manager main.go
 
 .PHONY: run
-run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./main.go
+run: build
+ 	go run . --oathkeeper-svc-address=${OATHKEEPER_SVC_ADDRESS} --oathkeeper-svc-port=${OATHKEEPER_SVC_PORT} --jwks-uri=${JWKS_URI} --service-blocklist=${SERVICE_BLOCKLIST} --domain-allowlist=${DOMAIN_ALLOWLIST}
 
 .PHONY: docker-build
-docker-build: test ## Build docker image with the manager.
-	docker build -t ${IMG} .
+docker-build: pull-licenses test ## Build docker image with the manager.
+ 	docker build -t $(APP_NAME):latest .
 
-.PHONY: docker-push
-docker-push: ## Push docker image with the manager.
-	docker push ${IMG}
+docker-push:
+ 	docker tag $(APP_NAME) $(IMG):$(TAG)
+ 	docker push $(IMG):$(TAG)
+ ifeq ($(JOB_TYPE), postsubmit)
+ 	@echo "Sign image with Cosign"
+ 	cosign version
+ 	cosign sign -key ${KMS_KEY_URL} $(IMG):$(TAG)
+ else
+ 	@echo "Image signing skipped"
+ endif
+
+ .PHONY: pull-licenses
+ pull-licenses:
+ ifdef LICENSE_PULLER_PATH
+ 	bash $(LICENSE_PULLER_PATH)
+ else
+ 	mkdir -p licenses
+ endif
 
 ##@ Deployment
 
