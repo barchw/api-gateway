@@ -5,20 +5,16 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 	"strings"
 	"time"
 
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
-	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
-	apiErrors "k8s.io/apimachinery/pkg/api/errors"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/util/cert"
 	ctrl "sigs.k8s.io/controller-runtime"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -31,15 +27,11 @@ const (
 	APIRuleCRDName = "apirules.gateway.kyma-project.io"
 )
 
-func SetupCertificates(ctx context.Context, secretName, secretNamespace, serviceName string) error {
+func SetupCertificates(ctx context.Context, webhookNamespace, serviceName string) error {
 	// We are going to talk to the API server _before_ we start the manager.
 	// Since the default manager client reads from cache, we will get an error.
 	// So, we create a "serverClient" that would read from the API directly.
 	// We only use it here, this only runs at start up, so it shouldn't be to much for the API
-	k8sclient, err := kubeclient.NewForConfig(ctrl.GetConfigOrDie())
-	if err != nil {
-		return err
-	}
 	serverClient, err := ctrlclient.New(ctrl.GetConfigOrDie(), ctrlclient.Options{})
 	if err != nil {
 		return errors.Wrap(err, "failed to create a server client")
@@ -48,41 +40,26 @@ func SetupCertificates(ctx context.Context, secretName, secretNamespace, service
 		return errors.Wrap(err, "while adding apiextensions.v1 schema to k8s client")
 	}
 
-	if err := EnsureWebhookSecret(ctx, serverClient, k8sclient, secretName, secretNamespace, serviceName); err != nil {
+	key, _, err := CreateCABundle(ctx, webhookNamespace, DefaultCertDir, serviceName)
+	if err != nil {
 		return errors.Wrap(err, "failed to ensure webhook secret")
 	}
 
-	certPath := path.Join(DefaultCertDir, CertFile)
-	caBundle, err := ioutil.ReadFile(certPath)
-	if err != nil {
-		return errors.Wrapf(err, "failed to read caBundle file: %s", certPath)
-	}
-
-	if err := AddCertToConversionWebhook(ctx, serverClient, caBundle); err != nil {
+	if err := AddCertToConversionWebhook(ctx, serverClient, key); err != nil {
 		return errors.Wrap(err, "while adding CaBundle to Conversion Webhook for function CRD")
 	}
 	return nil
 }
 
-func EnsureWebhookSecret(ctx context.Context, client ctrlclient.Client, k8sclient kubeclient.Interface, secretName, secretNamespace, serviceName string) error {
+func CreateCABundle(ctx context.Context, webhookNamespace string, certDir string, serviceName string) ([]byte, []byte, error) {
 	logger := ctrl.LoggerFrom(ctx)
-	secret := &corev1.Secret{}
-	logger.Info("ensuring webhook secret")
-	err := client.Get(ctx, types.NamespacedName{Name: secretName, Namespace: secretNamespace}, secret)
-	if err != nil && !apiErrors.IsNotFound(err) {
-		return errors.Wrap(err, "failed to get webhook secret")
-	}
+	logger.Info("creating certificate for webhook")
 
-	if apiErrors.IsNotFound(err) {
-		logger.Info("creating webhook secret")
-		return createSecret(ctx, client, secretName, secretNamespace, serviceName)
+	key, cert, err := createCert(ctx, certDir, webhookNamespace, serviceName)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to crete cert")
 	}
-
-	logger.Info("updating pre-exiting webhook secret")
-	if err := updateSecret(ctx, k8sclient, logger, secret, serviceName); err != nil {
-		return errors.Wrap(err, "failed to update secret")
-	}
-	return nil
+	return key, cert, nil
 }
 
 func AddCertToConversionWebhook(ctx context.Context, client ctrlclient.Client, caBundle []byte) error {
@@ -119,32 +96,19 @@ func containsConversionWebhookClientConfig(crd *apiextensionsv1.CustomResourceDe
 	return true, ""
 }
 
-func createSecret(ctx context.Context, client ctrlclient.Client, name, namespace, serviceName string) error {
-	secret, err := buildSecret(name, namespace, serviceName)
+func createCert(ctx context.Context, certDir string, webhookNamespace string, serviceName string) ([]byte, []byte, error) {
+
+	cert, key, err := buildCert(webhookNamespace, serviceName)
 	if err != nil {
-		return errors.Wrap(err, "failed to create secret object")
+		return nil, nil, errors.Wrap(err, "failed to build certificate")
 	}
-	if err := client.Create(ctx, secret); err != nil {
-		return errors.Wrap(err, "failed to create secret")
-	}
-	return nil
-}
+	keyPath := path.Join(certDir, "tls.key")
+	os.WriteFile(keyPath, key, 0644)
 
-func updateSecret(ctx context.Context, client kubeclient.Interface, log logr.Logger, secret *corev1.Secret, serviceName string) error {
+	certPath := path.Join(certDir, "tls.crt")
+	os.WriteFile(certPath, cert, 0644)
 
-	newSecret, err := buildSecret(secret.Name, secret.Namespace, serviceName)
-	if err != nil {
-		return errors.Wrap(err, "failed to create secret object")
-	}
-
-	secret.Data = newSecret.Data
-	_, err = client.CoreV1().Secrets(secret.Namespace).Update(ctx, secret, v1.UpdateOptions{})
-
-	if err != nil {
-		return errors.Wrap(err, "failed to update secret")
-	}
-
-	return nil
+	return cert, key, nil
 }
 
 func isValidSecret(s *corev1.Secret) (bool, error) {
@@ -203,22 +167,13 @@ func hasRequiredKeys(data map[string][]byte) bool {
 	return true
 }
 
-func buildSecret(name, namespace, serviceName string) (*corev1.Secret, error) {
-	cert, key, err := generateWebhookCertificates(serviceName, namespace)
+func buildCert(namespace, serviceName string) (cert []byte, key []byte, err error) {
+	cert, key, err = generateWebhookCertificates(serviceName, namespace)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate webhook certificates")
+		return nil, nil, errors.Wrap(err, "failed to generate webhook certificates")
 	}
 
-	return &corev1.Secret{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-		Data: map[string][]byte{
-			CertFile: cert,
-			KeyFile:  key,
-		},
-	}, nil
+	return cert, key, nil
 }
 
 func generateWebhookCertificates(serviceName, namespace string) ([]byte, []byte, error) {

@@ -145,7 +145,6 @@ func main() {
 
 	if err := webhook.SetupCertificates(
 		context.Background(),
-		cfg.WebhookSecretName,
 		cfg.SystemNamespace,
 		cfg.WebhookServiceName); err != nil {
 		setupLog.Error(err, "failed to setup certificates and webhook secret")
@@ -159,6 +158,7 @@ func main() {
 		HealthProbeBindAddress: healthProbeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "69358922.kyma-project.io",
+		CertDir:                "/tmp/k8s-webhook-server/serving-certs",
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")

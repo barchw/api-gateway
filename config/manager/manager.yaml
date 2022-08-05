@@ -20,6 +20,7 @@ spec:
   template:
     metadata:
       annotations:
+        sidecar.istio.io/inject: "false"
         kubectl.kubernetes.io/default-container: manager
       labels:
         control-plane: controller-manager

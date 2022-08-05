@@ -15,18 +15,19 @@ COPY api/ api/
 COPY controllers/ controllers/
 COPY internal/ internal/
 
+RUN touch /tls.crt && chmod 777 /tls.crt
+RUN touch /tls.key && chmod 777 /tls.key
+
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager main.go
-
-FROM eu.gcr.io/kyma-project/external/alpine:3.15.0 as certs
-RUN apk add --no-cache ca-certificates
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
 COPY --from=builder /workspace/manager .
-COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY --from=builder /tls.crt /tmp/k8s-webhook-server/serving-certs/tls.crt
+COPY --from=builder /tls.key /tmp/k8s-webhook-server/serving-certs/tls.key
 USER 65532:65532
 
 ENTRYPOINT ["/manager"]

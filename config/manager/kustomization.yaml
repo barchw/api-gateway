@@ -13,4 +13,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: i566483/api-gateway-controller
-  newTag: 2.1.4
+  newTag: apirule-v2
