@@ -140,6 +140,7 @@ run: build
 docker-build: pull-licenses test ## Build docker image with the manager.
 	docker build -t $(APP_NAME):latest .
 
+.PHONY: docker-push
 docker-push:
 	docker tag $(APP_NAME) $(IMG):$(TAG)
 	docker push $(IMG):$(TAG)
