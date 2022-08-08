@@ -28,10 +28,6 @@ const (
 )
 
 func SetupCertificates(ctx context.Context, webhookNamespace, serviceName string) error {
-	// We are going to talk to the API server _before_ we start the manager.
-	// Since the default manager client reads from cache, we will get an error.
-	// So, we create a "serverClient" that would read from the API directly.
-	// We only use it here, this only runs at start up, so it shouldn't be to much for the API
 	serverClient, err := ctrlclient.New(ctrl.GetConfigOrDie(), ctrlclient.Options{})
 	if err != nil {
 		return errors.Wrap(err, "failed to create a server client")
