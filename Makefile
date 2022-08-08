@@ -9,7 +9,7 @@ override OATHKEEPER_SVC_ADDRESS = change-me
 endif
 
 ifdef DEV
-override OATHKEEPER_SVC_ADDRESS = ory-oathkeeper
+override OATHKEEPER_SVC_ADDRESS = ory-oathkeeper-proxy.kyma-system.svc.cluster.local
 endif
 
 # Example 4455
@@ -45,7 +45,7 @@ override DOMAIN_ALLOWLIST = change-me
 endif
 
 ifdef DEV
-override DOMAIN_ALLOWLIST = testHost.com
+override DOMAIN_ALLOWLIST = k8s-hana.ondemand.com
 endif
 
 # CORS

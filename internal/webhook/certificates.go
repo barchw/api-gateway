@@ -40,12 +40,12 @@ func SetupCertificates(ctx context.Context, webhookNamespace, serviceName string
 		return errors.Wrap(err, "while adding apiextensions.v1 schema to k8s client")
 	}
 
-	key, _, err := CreateCABundle(ctx, webhookNamespace, DefaultCertDir, serviceName)
+	cert, _, err := CreateCABundle(ctx, webhookNamespace, DefaultCertDir, serviceName)
 	if err != nil {
 		return errors.Wrap(err, "failed to ensure webhook secret")
 	}
 
-	if err := AddCertToConversionWebhook(ctx, serverClient, key); err != nil {
+	if err := AddCertToConversionWebhook(ctx, serverClient, cert); err != nil {
 		return errors.Wrap(err, "while adding CaBundle to Conversion Webhook for function CRD")
 	}
 	return nil
@@ -55,11 +55,11 @@ func CreateCABundle(ctx context.Context, webhookNamespace string, certDir string
 	logger := ctrl.LoggerFrom(ctx)
 	logger.Info("creating certificate for webhook")
 
-	key, cert, err := createCert(ctx, certDir, webhookNamespace, serviceName)
+	cert, key, err := createCert(ctx, certDir, webhookNamespace, serviceName)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to crete cert")
 	}
-	return key, cert, nil
+	return cert, key, nil
 }
 
 func AddCertToConversionWebhook(ctx context.Context, client ctrlclient.Client, caBundle []byte) error {
