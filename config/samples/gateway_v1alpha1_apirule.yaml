@@ -8,7 +8,7 @@ metadata:
     example: httpbin
 spec:
   service:
-    host: orders-service.bc-tst-2.goatz.shoot.canary.k8s-hana.ondemand.com
+    host: multiplesvc.testHost.com
     name: httpbin
     port: 8000
   gateway: kyma-system/kyma-gateway

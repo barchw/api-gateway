@@ -137,7 +137,7 @@ run: build
 	go run . --oathkeeper-svc-address=${OATHKEEPER_SVC_ADDRESS} --oathkeeper-svc-port=${OATHKEEPER_SVC_PORT} --jwks-uri=${JWKS_URI} --service-blocklist=${SERVICE_BLOCKLIST} --domain-allowlist=${DOMAIN_ALLOWLIST}
 
 .PHONY: docker-build
-docker-build: pull-licenses test ## Build docker image with the manager.
+docker-build: pull-licenses #test ## Build docker image with the manager.
 	docker build -t $(APP_NAME):latest .
 
 .PHONY: docker-push

@@ -1,19 +1,19 @@
 apiVersion: gateway.kyma-project.io/v1beta1
 kind: APIRule
 metadata:
-  name: orders-service
+  name: orders-service-v1beta1
   namespace: default
   labels:
     app: orders-service
     example: orders-service
 spec:
-  host: testHost.com
-  service:
-    name: orders-service
-    port: 80
+  host: v1beta1.testHost.com
   gateway: kyma-system/kyma-gateway
   rules:
     - path: /.*
+      service:
+        name: orders-service
+        port: 80
       methods: ["GET","POST"]
       accessStrategies:
         - handler: noop

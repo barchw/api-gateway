@@ -57,9 +57,23 @@ func (f *Factory) CalculateRequiredState(api *gatewayv1beta1.APIRule) *State {
 	var res State
 
 	res.accessRules = make(map[string]*rulev1alpha1.Rule)
-
+	exclusionList := []string{}
 	for _, rule := range api.Spec.Rules {
+		exclusionList = append(exclusionList, rule.Path)
 		if isSecured(rule) {
+			// This exclusion regex is built because Ory Oathkeeper doesn't support two paths matching the same request (e.g /orders and /.*)
+			// It is done so the match happens from the first to last rule (Istio Virtual Service does it the same way)
+			if len(exclusionList) > 1 {
+				exclude := exclusionList[0]
+				if len(exclusionList) > 2 {
+					l := exclusionList[1:len(exclusionList)-1]
+					for _, exclusion := range l {
+						exclude = fmt.Sprintf("%s|%s", exclude, exclusion)
+					}
+				}
+				rule.Path = fmt.Sprintf(`(?!(%s))%s`, exclude, rule.Path)
+			}
+
 			ar := generateAccessRule(api, rule, rule.AccessStrategies, f.additionalLabels, f.defaultDomainName)
 			res.accessRules[ar.Spec.Match.URL] = ar
 		}
