@@ -127,7 +127,7 @@ docker-build: pull-licenses test ## Build docker image with the manager.
 
 .PHONY: docker-build-certificates
 docker-build-certificates: ## Build docker image for certificates management
-	docker build -f Dockerfile-certificate -t $(CERTIFICATES_APP_NAME):latest .
+	docker build -f Dockerfile-certificates -t $(CERTIFICATES_APP_NAME):latest .
 
 .PHONY: docker-push
 docker-push:
