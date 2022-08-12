@@ -1,6 +1,11 @@
 APP_NAME = api-gateway-controller
 IMG = $(DOCKER_PUSH_REPOSITORY)$(DOCKER_PUSH_DIRECTORY)/$(APP_NAME)
 TAG = $(DOCKER_TAG)
+
+CERTIFICATES_APP_NAME = api-gateway-webhook-certificates
+CERTIFICATES_IMG = $(DOCKER_PUSH_REPOSITORY)$(DOCKER_PUSH_DIRECTORY)/$(CERTIFICATES_APP_NAME)
+CERTIFICATES_TAG = $(DOCKER_TAG)
+
 CRD_OPTIONS ?= "crd:trivialVersions=true,crdVersions=v1"
 
 # Example ory-oathkeeper
@@ -140,6 +145,10 @@ run: build
 docker-build: pull-licenses test ## Build docker image with the manager.
 	docker build -t $(APP_NAME):latest .
 
+.PHONY: docker-build-certificates
+docker-build-certificates: ## Build docker image for certificates management
+	docker build -f Dockerfiles-certificate -t $(CERTIFICATES_APP_NAME):latest .
+
 .PHONY: docker-push
 docker-push:
 	docker tag $(APP_NAME) $(IMG):$(TAG)
@@ -148,6 +157,18 @@ ifeq ($(JOB_TYPE), postsubmit)
 	@echo "Sign image with Cosign"
 	cosign version
 	cosign sign -key ${KMS_KEY_URL} $(IMG):$(TAG)
+else
+	@echo "Image signing skipped"
+endif
+
+.PHONY: docker-push-certificates
+docker-push:
+	docker tag $(CERTIFICATES_APP_NAME) $(CERTIFICATES_IMG):$(CERTIFICATES_TAG)
+	docker push $(CERTIFICATES_IMG):$(CERTIFICATES_TAG)
+ifeq ($(JOB_TYPE), postsubmit)
+	@echo "Sign image with Cosign"
+	cosign version
+	cosign sign -key ${KMS_KEY_URL} $(CERTIFICATES_IMG):$(CERTIFICATES_TAG)
 else
 	@echo "Image signing skipped"
 endif
@@ -252,13 +273,13 @@ lint: ## Run golangci-lint against code.
 
 ##@ ci targets
 .PHONY: ci-pr
-ci-pr: build test docker-build docker-push
+ci-pr: build test docker-build docker-push docker-build-certificates docker-push-certificates
 
 .PHONY: ci-main
-ci-main: build docker-build docker-push
+ci-main: build docker-build docker-push docker-build-certificates docker-push-certificates
 
 .PHONY: ci-release
-ci-release: build docker-build docker-push
+ci-release: build docker-build docker-push docker-build-certificates docker-push-certificates
 
 .PHONY: clean
 clean:
