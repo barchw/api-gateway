@@ -1,3 +1,4 @@
+#Creation of this APIRule should result in error caused by path not having a service assigned to it
 apiVersion: gateway.kyma-project.io/v1beta1
 kind: APIRule
 metadata:
@@ -9,9 +10,6 @@ metadata:
 spec:
   host: 3svc.testHost.com
   gateway: kyma-system/kyma-gateway
-  service:
-    name: httpbin
-    port: 8000
   rules:
     - path: /orders
       service:
@@ -29,18 +27,3 @@ spec:
       methods: ["GET","POST"]
       accessStrategies:
         - handler: noop
-    - path: /headers|/ip
-      methods: ["GET","POST"]
-      accessStrategies:
-        - handler: noop
-      mutators: [
-          {
-            "handler": "header",
-            "config": {
-              "headers": {
-                "X-User": "test",
-                "X-Some-Arbitrary-Data": "test"
-              }
-            }
-          }
-        ]

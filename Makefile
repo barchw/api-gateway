@@ -262,10 +262,6 @@ informer-gen: ## Download informer-gen
 lister-gen: ## Download lister-gen
 	GOBIN=$(LOCALBIN) go install k8s.io/code-generator/cmd/lister-gen@v0.23.4
 
-.PHONY: fmt
-fmt: ## Run go fmt against code.
-	gofmt -s -w .
-
 .PHONY: lint
 lint: ## Run golangci-lint against code.
 	GOBIN=$(LOCALBIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANG_CI_LINT_VERSION)
