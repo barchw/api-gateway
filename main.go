@@ -17,7 +17,6 @@ limitations under the License.
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -39,8 +38,6 @@ import (
 	rulev1alpha1 "github.com/ory/oathkeeper-maester/api/v1alpha1"
 	"github.com/vrischmann/envconfig"
 	networkingv1beta1 "istio.io/client-go/pkg/apis/networking/v1beta1"
-
-	"github.com/kyma-incubator/api-gateway/internal/webhook"
 
 	gatewayv1alpha1 "github.com/kyma-incubator/api-gateway/api/v1alpha1"
 	gatewayv1beta1 "github.com/kyma-incubator/api-gateway/api/v1beta1"
@@ -141,14 +138,6 @@ func main() {
 	setupLog.Info("reading webhook configuration")
 	if err := envconfig.Init(cfg); err != nil {
 		panic(errors.Wrap(err, "while reading env variables"))
-	}
-
-	if err := webhook.SetupCertificates(
-		context.Background(),
-		cfg.SystemNamespace,
-		cfg.WebhookServiceName); err != nil {
-		setupLog.Error(err, "failed to setup certificates and webhook secret")
-		os.Exit(1)
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{

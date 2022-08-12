@@ -17,7 +17,7 @@ spec:
       service:
           name: orders-service
           port: 80
-      methods: ["GET","POST"]
+      methods: ["GET"]
       accessStrategies:
         - handler: oauth2_introspection
           config:
@@ -29,7 +29,18 @@ spec:
       methods: ["GET","POST"]
       accessStrategies:
         - handler: noop
-    - path: /.*
+    - path: /headers|/ip
       methods: ["GET","POST"]
       accessStrategies:
         - handler: noop
+      mutators: [
+          {
+            "handler": "header",
+            "config": {
+              "headers": {
+                "X-User": "test",
+                "X-Some-Arbitrary-Data": "test"
+              }
+            }
+          }
+        ]

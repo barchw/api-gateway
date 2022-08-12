@@ -15,9 +15,6 @@ COPY api/ api/
 COPY controllers/ controllers/
 COPY internal/ internal/
 
-RUN touch /tls.crt && chmod 777 /tls.crt
-RUN touch /tls.key && chmod 777 /tls.key
-
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager main.go
 
@@ -26,8 +23,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager 
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
 COPY --from=builder /workspace/manager .
-COPY --from=builder /tls.crt /tmp/k8s-webhook-server/serving-certs/tls.crt
-COPY --from=builder /tls.key /tmp/k8s-webhook-server/serving-certs/tls.key
+
 USER 65532:65532
 
 ENTRYPOINT ["/manager"]
