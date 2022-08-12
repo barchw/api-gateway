@@ -142,7 +142,7 @@ else
 endif
 
 .PHONY: docker-push-certificates
-docker-push:
+docker-push-certificates:
 	docker tag $(CERTIFICATES_APP_NAME) $(CERTIFICATES_IMG):$(CERTIFICATES_TAG)
 	docker push $(CERTIFICATES_IMG):$(CERTIFICATES_TAG)
 ifeq ($(JOB_TYPE), postsubmit)
