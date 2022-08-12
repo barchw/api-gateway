@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 
 readonly CI_FLAG=ci
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 INVERTED='\033[7m'
 NC='\033[0m' # No Color
+
 echo -e "${INVERTED}"
 echo "USER: " + $USER
 echo "PATH: " + $PATH
 echo -e "${NC}"
+
 ##
 # GO BUILD
 ##
@@ -17,13 +20,16 @@ if [ "$1" == "$CI_FLAG" ]; then
 	# build binary statically
 	buildEnv="env CGO_ENABLED=0"
 fi
+
 ${buildEnv} go build -o bin/manager main.go
+
 goBuildResult=$?
 if [ ${goBuildResult} != 0 ]; then
 	echo -e "${RED}✗ go build${NC}\n$goBuildResult${NC}"
 	exit 1
 else echo -e "${GREEN}√ go build${NC}"
 fi
+
 ##
 # GO TEST
 ##
@@ -35,6 +41,8 @@ if [ $? != 0 ]; then
 	exit 1
 else echo -e "${GREEN}√ go test${NC}"
 fi
+
+
 ##
 #  GO LINT
 ##
@@ -42,6 +50,8 @@ echo "? golint"
 go install golang.org/x/lint/golint
 golint ./... | grep -v internal/builders
 echo -e "${GREEN}√ golint${NC}"
+
+
 ##
 # GO FMT
 ##
@@ -52,6 +62,7 @@ echo -e "${GREEN}√ go fmt${NC}"
 # GO VET
 ##
 packagesToVet=($(go list ./... | grep -v /vendor/ | grep -v api-controller/pkg/clients ))
+
 for vPackage in "${packagesToVet[@]}"; do
 	vetResult=$(go vet ${vPackage})
 	if [ $(echo ${#vetResult}) != 0 ]; then
@@ -60,6 +71,7 @@ for vPackage in "${packagesToVet[@]}"; do
 	else echo -e "${GREEN}√ go vet ${vPackage} ${NC}"
 	fi
 done
+
 ##
 # INFO.JSON
 ##
