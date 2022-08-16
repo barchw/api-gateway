@@ -59,7 +59,7 @@ func addCertToConversionWebhook(ctx context.Context, client ctrlclient.Client, c
 	crd := &apiextensionsv1.CustomResourceDefinition{}
 	err := client.Get(ctx, types.NamespacedName{Name: APIRuleCRDName}, crd)
 	if err != nil {
-		return errors.Wrap(err, "failed to get function crd")
+		return errors.Wrap(err, "failed to get APIRule crd")
 	}
 
 	if contains, msg := containsConversionWebhookClientConfig(crd); !contains {
@@ -116,15 +116,15 @@ func createSecret(ctx context.Context, client ctrlclient.Client, name, namespace
 
 func containsConversionWebhookClientConfig(crd *apiextensionsv1.CustomResourceDefinition) (bool, string) {
 	if crd.Spec.Conversion == nil {
-		return false, "conversion not found in function CRD"
+		return false, "conversion not found in APIRule CRD"
 	}
 
 	if crd.Spec.Conversion.Webhook == nil {
-		return false, "conversion webhook not found in function CRD"
+		return false, "conversion webhook not found in APIRule CRD"
 	}
 
 	if crd.Spec.Conversion.Webhook.ClientConfig == nil {
-		return false, "client config for conversion webhook not found in function CRD"
+		return false, "client config for conversion webhook not found in APIRule CRD"
 	}
 	return true, ""
 }

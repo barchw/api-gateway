@@ -8,7 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 )
 
-// ConvertTo converts this CronJob to the Hub version (v1beta1).
+// ConvertTo converts this ApiRule to the Hub version (v1beta1).
 func (src *APIRule) ConvertTo(dstRaw conversion.Hub) error {
 	log.Default().Printf("dst host: %s", src.Name)
 	dst := dstRaw.(*v1beta1.APIRule)
@@ -35,7 +35,7 @@ func (src *APIRule) ConvertTo(dstRaw conversion.Hub) error {
 	return nil
 }
 
-// ConvertFrom converts this CronJob from the Hub version (v1beta1).
+// ConvertFrom converts this ApiRule from the Hub version (v1beta1).
 func (dst *APIRule) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*v1beta1.APIRule)
 	specData, err := json.Marshal(src.Spec)
