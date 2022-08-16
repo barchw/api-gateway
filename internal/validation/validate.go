@@ -48,9 +48,8 @@ func (v *APIRule) Validate(api *gatewayv1beta1.APIRule, vsList networkingv1beta1
 
 	res := []Failure{}
 	//Validate service on path level if it is created
-	if api.Spec.Service != nil {
-		res = append(res, v.validateService(".spec.service", api)...)
-	}
+	res = append(res, v.validateServices(".spec.service", api)...)
+
 	//Validate Host
 	res = append(res, v.validateHost(".spec.host", vsList, api)...)
 
@@ -123,16 +122,32 @@ func (v *APIRule) validateHost(attributePath string, vsList networkingv1beta1.Vi
 	return problems
 }
 
-func (v *APIRule) validateService(attributePath string, api *gatewayv1beta1.APIRule) []Failure {
+func (v *APIRule) validateServices(attributePath string, api *gatewayv1beta1.APIRule) []Failure {
 	var problems []Failure
-
-	for namespace, services := range v.ServiceBlockList {
-		for _, svc := range services {
-			if svc == *api.Spec.Service.Name && namespace == api.ObjectMeta.Namespace {
-				problems = append(problems, Failure{
-					AttributePath: attributePath + ".name",
-					Message:       fmt.Sprintf("Service %s in namespace %s is blocklisted", svc, namespace),
-				})
+	if api.Spec.Service != nil {
+		for namespace, services := range v.ServiceBlockList {
+			for _, svc := range services {
+				if svc == *api.Spec.Service.Name && namespace == api.ObjectMeta.Namespace {
+					problems = append(problems, Failure{
+						AttributePath: attributePath + ".name",
+						Message:       fmt.Sprintf("Service %s in namespace %s is blocklisted", svc, namespace),
+					})
+				}
+			}
+		}
+	}
+	for i, rule := range api.Spec.Rules {
+		if rule.Service == nil {
+			continue
+		}
+		for namespace, services := range v.ServiceBlockList {
+			for _, svc := range services {
+				if svc == *rule.Service.Name && namespace == api.ObjectMeta.Namespace {
+					problems = append(problems, Failure{
+						AttributePath: attributePath + fmt.Sprintf(".rule[%d].name", i),
+						Message:       fmt.Sprintf("Service %s in namespace %s is blocklisted", svc, namespace),
+					})
+				}
 			}
 		}
 	}
