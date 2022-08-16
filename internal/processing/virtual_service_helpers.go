@@ -54,7 +54,8 @@ func (f *Factory) generateVirtualService(api *gatewayv1beta1.APIRule) *networkin
 		GenerateName(virtualServiceNamePrefix).
 		Namespace(api.ObjectMeta.Namespace).
 		Owner(builders.OwnerReference().From(&ownerRef)).
-		Label(OwnerLabel, fmt.Sprintf("%s.%s", api.ObjectMeta.Name, api.ObjectMeta.Namespace))
+		Label(OwnerLabel, fmt.Sprintf("%s.%s", api.ObjectMeta.Name, api.ObjectMeta.Namespace)).
+		Label(OwnerLabelv1alpha1, fmt.Sprintf("%s.%s", api.ObjectMeta.Name, api.ObjectMeta.Namespace))
 
 	for k, v := range f.additionalLabels {
 		vsBuilder.Label(k, v)
