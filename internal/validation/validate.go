@@ -48,15 +48,16 @@ func (v *APIRule) Validate(api *gatewayv1beta1.APIRule, vsList networkingv1beta1
 
 	res := []Failure{}
 	//Validate service on path level if it is created
-	res = append(res, v.validateServices(".spec.service", api)...)
-
+	if api.Spec.Service != nil {
+		res = append(res, v.validateService(".spec.service", api)...)
+	}
 	//Validate Host
 	res = append(res, v.validateHost(".spec.host", vsList, api)...)
 
 	//Validate Gateway
 	res = append(res, v.validateGateway(".spec.gateway", api.Spec.Gateway)...)
 	//Validate Rules
-	res = append(res, v.validateRules(".spec.rules", api.Spec.Service == nil, api.Spec.Rules)...)
+	res = append(res, v.validateRules(".spec.rules", api.Spec.Service == nil, api.Spec.Rules, api.Namespace)...)
 
 	return res
 }
@@ -122,32 +123,16 @@ func (v *APIRule) validateHost(attributePath string, vsList networkingv1beta1.Vi
 	return problems
 }
 
-func (v *APIRule) validateServices(attributePath string, api *gatewayv1beta1.APIRule) []Failure {
+func (v *APIRule) validateService(attributePath string, api *gatewayv1beta1.APIRule) []Failure {
 	var problems []Failure
-	if api.Spec.Service != nil {
-		for namespace, services := range v.ServiceBlockList {
-			for _, svc := range services {
-				if svc == *api.Spec.Service.Name && namespace == api.ObjectMeta.Namespace {
-					problems = append(problems, Failure{
-						AttributePath: attributePath + ".name",
-						Message:       fmt.Sprintf("Service %s in namespace %s is blocklisted", svc, namespace),
-					})
-				}
-			}
-		}
-	}
-	for i, rule := range api.Spec.Rules {
-		if rule.Service == nil {
-			continue
-		}
-		for namespace, services := range v.ServiceBlockList {
-			for _, svc := range services {
-				if svc == *rule.Service.Name && namespace == api.ObjectMeta.Namespace {
-					problems = append(problems, Failure{
-						AttributePath: attributePath + fmt.Sprintf(".rule[%d].name", i),
-						Message:       fmt.Sprintf("Service %s in namespace %s is blocklisted", svc, namespace),
-					})
-				}
+
+	for namespace, services := range v.ServiceBlockList {
+		for _, svc := range services {
+			if svc == *api.Spec.Service.Name && namespace == api.ObjectMeta.Namespace {
+				problems = append(problems, Failure{
+					AttributePath: attributePath + ".name",
+					Message:       fmt.Sprintf("Service %s in namespace %s is blocklisted", svc, namespace),
+				})
 			}
 		}
 	}
@@ -160,7 +145,7 @@ func (v *APIRule) validateGateway(attributePath string, gateway *string) []Failu
 
 // Validates whether all rules are defined correctly
 // Checks whether all rules have service defined for them if checkForService is true
-func (v *APIRule) validateRules(attributePath string, checkForService bool, rules []gatewayv1beta1.Rule) []Failure {
+func (v *APIRule) validateRules(attributePath string, checkForService bool, rules []gatewayv1beta1.Rule, rulesNamespace string) []Failure {
 	var problems []Failure
 
 	if len(rules) == 0 {
@@ -177,7 +162,19 @@ func (v *APIRule) validateRules(attributePath string, checkForService bool, rule
 		problems = append(problems, v.validateMethods(attributePathWithRuleIndex+".methods", r.Methods)...)
 		problems = append(problems, v.validateAccessStrategies(attributePathWithRuleIndex+".accessStrategies", r.AccessStrategies)...)
 		if checkForService && r.Service == nil {
-			problems = append(problems, Failure{AttributePath: attributePathWithRuleIndex + ".svc", Message: "No service defined with no main service on spec level"})
+			problems = append(problems, Failure{AttributePath: attributePathWithRuleIndex + ".service", Message: "No service defined with no main service on spec level"})
+		}
+		if r.Service != nil {
+			for namespace, services := range v.ServiceBlockList {
+				for _, svc := range services {
+					if svc == *r.Service.Name && namespace == rulesNamespace {
+						problems = append(problems, Failure{
+							AttributePath: attributePathWithRuleIndex + ".service.name",
+							Message:       fmt.Sprintf("Service %s in namespace %s is blocklisted", svc, namespace),
+						})
+					}
+				}
+			}
 		}
 	}
 

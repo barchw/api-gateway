@@ -456,8 +456,52 @@ var _ = Describe("Validate function", func() {
 
 		//then
 		Expect(problems).To(HaveLen(1))
-		Expect(problems[0].AttributePath).To(Equal(".spec.rules[0].svc"))
+		Expect(problems[0].AttributePath).To(Equal(".spec.rules[0].service"))
 		Expect(problems[0].Message).To(Equal("No service defined with no main service on spec level"))
+	})
+
+	It("Should return an error when rule is defined with blocklisted service", func() {
+		//given
+		sampleBlocklistedService := "kubernetes"
+		validHost := sampleBlocklistedService + "." + allowlistedDomain
+		testBlockList := map[string][]string{
+			"default": {sampleBlocklistedService, "kube-dns"},
+			"example": {"service"}}
+
+		input := &gatewayv1beta1.APIRule{
+			ObjectMeta: v1.ObjectMeta{
+				Namespace: "default",
+			},
+			Spec: gatewayv1beta1.APIRuleSpec{
+				Host: getHost(validHost),
+				Rules: []gatewayv1beta1.Rule{
+					{
+						Path: "/abc",
+						AccessStrategies: []*gatewayv1beta1.Authenticator{
+							toAuthenticator("noop", emptyConfig()),
+						},
+						Service: getService(sampleServiceName, uint32(8080)),
+					},
+					{
+						Path: "/abcd",
+						AccessStrategies: []*gatewayv1beta1.Authenticator{
+							toAuthenticator("noop", emptyConfig()),
+						},
+						Service: getService(sampleBlocklistedService, uint32(8080)),
+					},
+				},
+			},
+		}
+		//when
+		problems := (&APIRule{
+			ServiceBlockList: testBlockList,
+			DomainAllowList:  testDomainAllowlist,
+		}).Validate(input, networkingv1beta1.VirtualServiceList{})
+
+		//then
+		Expect(problems).To(HaveLen(1))
+		Expect(problems[0].AttributePath).To(Equal(".spec.rules[1].service.name"))
+		Expect(problems[0].Message).To(Equal(fmt.Sprintf("Service %s in namespace default is blocklisted", sampleBlocklistedService)))
 	})
 
 	It("Should detect several problems", func() {
