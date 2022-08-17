@@ -18,14 +18,20 @@ func (src *APIRule) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 
-	json.Unmarshal(specData, &dst.Spec)
+	err = json.Unmarshal(specData, &dst.Spec)
+	if err != nil {
+		return err
+	}
 
 	statusData, err := json.Marshal(src.Status)
 	if err != nil {
 		return err
 	}
 
-	json.Unmarshal(statusData, &dst.Status)
+	err = json.Unmarshal(statusData, &dst.Status)
+	if err != nil {
+		return err
+	}
 
 	dst.ObjectMeta = src.ObjectMeta
 
@@ -43,14 +49,20 @@ func (dst *APIRule) ConvertFrom(srcRaw conversion.Hub) error {
 		return err
 	}
 
-	json.Unmarshal(specData, &dst.Spec)
+	err = json.Unmarshal(specData, &dst.Spec)
+	if err != nil {
+		return err
+	}
 
 	statusData, err := json.Marshal(src.Status)
 	if err != nil {
 		return err
 	}
 
-	json.Unmarshal(statusData, &dst.Status)
+	err = json.Unmarshal(statusData, &dst.Status)
+	if err != nil {
+		return err
+	}
 
 	dst.ObjectMeta = src.ObjectMeta
 

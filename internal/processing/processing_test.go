@@ -122,6 +122,82 @@ var _ = Describe("Factory", func() {
 				Expect(len(accessRules)).To(Equal(0))
 			})
 
+			It("noop: should override access rule upstream with rule level service", func() {
+				strategies := []*gatewayv1beta1.Authenticator{
+					{
+						Handler: &gatewayv1beta1.Handler{
+							Name: "noop",
+						},
+					},
+				}
+
+				overrideServiceName := "testName"
+				overrideServicePort := uint32(8080)
+
+				service := &gatewayv1beta1.Service{
+					Name: &overrideServiceName,
+					Port: &overrideServicePort,
+				}
+
+				allowRule := getRuleWithServiceFor(apiPath, apiMethods, []*gatewayv1beta1.Mutator{}, strategies, service)
+				rules := []gatewayv1beta1.Rule{allowRule}
+
+				apiRule := getAPIRuleFor(rules)
+
+				f := NewFactory(nil, ctrl.Log.WithName("test"), oathkeeperSvc, oathkeeperSvcPort, "https://example.com/.well-known/jwks.json", testCors, testAdditionalLabels, defaultDomain)
+
+				desiredState := f.CalculateRequiredState(apiRule)
+				vs := desiredState.virtualService
+				accessRules := desiredState.accessRules
+
+				expectedNoopRuleMatchURL := fmt.Sprintf("<http|https>://%s<%s>", serviceHost, apiPath)
+				expectedRuleUpstreamURL := fmt.Sprintf("http://%s.%s.svc.cluster.local:%d", overrideServiceName, apiNamespace, overrideServicePort)
+
+				//Verify VS
+				Expect(len(vs.Spec.Http[0].Route)).To(Equal(1))
+				Expect(vs.Spec.Http[0].Route[0].Destination.Host).To(Equal(oathkeeperSvc))
+
+				//Verify AR has rule level upstream
+				Expect(len(accessRules)).To(Equal(1))
+				Expect(accessRules[expectedNoopRuleMatchURL].Spec.Upstream.URL).To(Equal(expectedRuleUpstreamURL))
+			})
+
+			It("allow: should override VS destination host", func() {
+				strategies := []*gatewayv1beta1.Authenticator{
+					{
+						Handler: &gatewayv1beta1.Handler{
+							Name: "allow",
+						},
+					},
+				}
+
+				overrideServiceName := "testName"
+				overrideServicePort := uint32(8080)
+
+				service := &gatewayv1beta1.Service{
+					Name: &overrideServiceName,
+					Port: &overrideServicePort,
+				}
+
+				allowRule := getRuleWithServiceFor(apiPath, apiMethods, []*gatewayv1beta1.Mutator{}, strategies, service)
+				rules := []gatewayv1beta1.Rule{allowRule}
+
+				apiRule := getAPIRuleFor(rules)
+
+				f := NewFactory(nil, ctrl.Log.WithName("test"), oathkeeperSvc, oathkeeperSvcPort, "https://example.com/.well-known/jwks.json", testCors, testAdditionalLabels, defaultDomain)
+
+				desiredState := f.CalculateRequiredState(apiRule)
+				vs := desiredState.virtualService
+				accessRules := desiredState.accessRules
+
+				//verify VS has rule level destination host
+				Expect(len(vs.Spec.Http[0].Route)).To(Equal(1))
+				Expect(vs.Spec.Http[0].Route[0].Destination.Host).To(Equal(overrideServiceName + "." + apiNamespace + ".svc.cluster.local"))
+
+				//Verify AR has rule level upstream
+				Expect(len(accessRules)).To(Equal(0))
+			})
+
 			It("should produce VS and ARs for given paths", func() {
 				noop := []*gatewayv1beta1.Authenticator{
 					{
@@ -606,6 +682,16 @@ func getRuleFor(path string, methods []string, mutators []*gatewayv1beta1.Mutato
 		Methods:          methods,
 		Mutators:         mutators,
 		AccessStrategies: accessStrategies,
+	}
+}
+
+func getRuleWithServiceFor(path string, methods []string, mutators []*gatewayv1beta1.Mutator, accessStrategies []*gatewayv1beta1.Authenticator, service *gatewayv1beta1.Service) gatewayv1beta1.Rule {
+	return gatewayv1beta1.Rule{
+		Path:             path,
+		Methods:          methods,
+		Mutators:         mutators,
+		AccessStrategies: accessStrategies,
+		Service:          service,
 	}
 }
 
