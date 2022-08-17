@@ -16,7 +16,7 @@ spec:
   scope: Namespaced
   versions:
   - deprecated: true
-    deprecationWarning: v1alpha1 is deprecatated as of Kyma 2.5.X
+    deprecationWarning: v1alpha1 is deprecated as of Kyma 2.5.X
     name: v1alpha1
     schema:
       openAPIV3Schema:
@@ -58,6 +58,17 @@ spec:
                               keys vary per handler.
                             type: object
                             x-kubernetes-preserve-unknown-fields: true
+                            properties:
+                              jwks_urls:
+                                type: array
+                                items:
+                                  type: string
+                                  pattern: ^(https://|file://).*$
+                              trusted_issuers:
+                                type: array
+                                items:
+                                  type: string                              
+                                  pattern: ^(https://|file://).*$           
                           handler:
                             description: Name is the name of a handler
                             type: string
@@ -249,6 +260,17 @@ spec:
                               keys vary per handler.
                             type: object
                             x-kubernetes-preserve-unknown-fields: true
+                            properties:
+                              jwks_urls:
+                                type: array
+                                items:
+                                  type: string
+                                  pattern: ^(https://|file://).*$
+                              trusted_issuers:
+                                type: array
+                                items:
+                                  type: string                              
+                                  pattern: ^(https://|file://).*$           
                           handler:
                             description: Name is the name of a handler
                             type: string
